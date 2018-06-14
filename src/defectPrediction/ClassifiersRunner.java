@@ -16,10 +16,12 @@ public class ClassifiersRunner {
 	public static String dirPath = "E:/data/metric_arff1/";
 	public static String[] softwares = {
 			"xalan", 
-//			"jmeter", 
-//			"camel", 
-//			"celery", 
-//			"kivy", "tensorflow", "zulip",						
+			"jmeter", 
+			"camel", 
+			"celery", 
+			"kivy", 
+			"tensorflow", 
+//			"zulip",						
 //			"geode", "beam","cloudstack", "isis", 			
 //			"okhttp", "mahout"
 	};
@@ -70,7 +72,7 @@ public class ClassifiersRunner {
 		List<String> files = getVerFileList(name);
 		Util.sortFileName(files);	
 		int verNum = files.size();		
-		Evaluation[][] evals = new Evaluation[verNum+1][verNum-1];
+		Evaluation[][] evals = new Evaluation[verNum+3][verNum-1];
 		Instances[] allVersData = new Instances[files.size()];
 		Instances[] allVerDataWithName = new Instances[files.size()];
 		for (int sourIndex = 0; sourIndex < verNum - 1; sourIndex++) {
@@ -119,11 +121,20 @@ public class ClassifiersRunner {
 			Instances testData = allVersData[index+1];
 			testData = FeatureSelection.filterData(testData, features);
 			Evaluation eval = classifier.evalutate(testData);
-			evals[evals.length-2][index] = eval;
+			evals[evals.length-4][index] = eval;
 			
 			//filtered data as train dataset
 			indexes = DataBuilder.mergeData(allVerDataWithName[0], allVerDataWithName[index], indexes);
+			
+			//used for majority rule
 			Instances filtered = DataBuilder.filterConflictInstance(allVerDataWithName[0], indexes);
+			
+			//used for 28rule
+			Instances filtered_28 = DataBuilder.filterConflictInstance_28(allVerDataWithName[0], indexes);
+			
+			//used for 37rule
+			Instances filtered_37 = DataBuilder.filterConflictInstance_37(allVerDataWithName[0], indexes);
+			
 			filtered = new Instances(filtered);
 			filtered = FeatureSelection.delFilename(filtered);
 			int[] features2 = FeatureSelection.featureSelection(filtered, featureSelection);
@@ -132,7 +143,28 @@ public class ClassifiersRunner {
 			testData = allVersData[index+1];
 			testData = FeatureSelection.filterData(testData, features2);
 			Evaluation eval2 = classifier2.evalutate(testData);
-			evals[evals.length-1][index] = eval2;
+			evals[evals.length-3][index] = eval2;
+			
+			filtered_28 = new Instances(filtered_28);
+			filtered_28 = FeatureSelection.delFilename(filtered_28);
+			int[] features3 = FeatureSelection.featureSelection(filtered_28, featureSelection);
+			Instances trainData3 = FeatureSelection.filterData(filtered_28, features3);
+			GeneralClassifier classifier3 = new GeneralClassifier(trainData3, model, null);
+			testData = allVersData[index+1];
+			testData = FeatureSelection.filterData(testData, features3);
+			Evaluation eval3 = classifier3.evalutate(testData);
+			evals[evals.length-2][index] = eval3;
+			
+			filtered_37 = new Instances(filtered_37);
+			filtered_37 = FeatureSelection.delFilename(filtered_37);
+			int[] features4 = FeatureSelection.featureSelection(filtered_37, featureSelection);
+			Instances trainData4 = FeatureSelection.filterData(filtered_37, features4);
+			GeneralClassifier classifier4 = new GeneralClassifier(trainData4, model, null);
+			testData = allVersData[index+1];
+			testData = FeatureSelection.filterData(testData, features4);
+			Evaluation eval4 = classifier4.evalutate(testData);
+			evals[evals.length-1][index] = eval4;
+			
 		}
 		formatResult(evals, name, model, featureSelection, rebalance, files);
 	}
@@ -157,22 +189,28 @@ public class ClassifiersRunner {
 				.map(filename -> filename.substring(0, filename.length() - 5).split("_")[2])
 				.collect(Collectors.toList());
 		tags.add("allData");
-		tags.add("filtered");
+		tags.add("filtered_majority");
+		tags.add("filtered_28");
+		tags.add("filtered_37");
 		for (int sourIndex = 0; sourIndex < rowNum; sourIndex++) {
 			for (int targIndex = 0; targIndex < colNum; targIndex++) {
-				if (sourIndex <= targIndex || (sourIndex >= rowNum-2 && targIndex >= 1)) {
+				if (sourIndex <= targIndex || (sourIndex >= rowNum-4 && targIndex >= 1)) {
 					Evaluation eval = evals[sourIndex][targIndex];
 					if (eval == null) {
 						continue;
 					}
 					String resultTitle = null;
-					if (sourIndex == rowNum-2) {
+					if (sourIndex == rowNum-4) {
 						resultTitle = "=== " + name + "  allData  -->" + tags.get(targIndex) + " ===";
-					} else if (sourIndex == rowNum-1) {
+					} else if (sourIndex == rowNum-3) {
 						resultTitle = "=== " + name + "  filteredData  -->" + tags.get(targIndex) + " ===";
+					} else if (sourIndex == rowNum-2) {
+						resultTitle = "=== " + name + "  filteredData_28  -->" + tags.get(targIndex) + " ===";
+					} else if (sourIndex == rowNum-1) {
+						resultTitle = "=== " + name + "  filteredData_37  -->" + tags.get(targIndex) + " ===";
 					} else {
 						resultTitle = "=== " + name + "  " + tags.get(sourIndex) + "-->" + tags.get(targIndex) + " ===";
-					}
+					} 
 					String resultStr = GeneralClassifier.toDetailResult(eval, resultTitle);
 					//result process
 					allResults.add(resultStr);
@@ -297,10 +335,10 @@ public class ClassifiersRunner {
 //			GeneralClassifier.CLASSIFIER_SVM
 		};
 		String[] attrSele = {
-//			null,
+			null,
 //			FeatureSelection.CFS_ATTRIBUTE_SELECTION,
 //			FeatureSelection.CLASSIFIER_ATTRIBUTE_SELECTION,
-			FeatureSelection.FILTER_ATTRIBUTE_SELECTION
+//			FeatureSelection.FILTER_ATTRIBUTE_SELECTION
 		};
 		for (String name : softwares) {
 			System.out.println("===========processing " + name + "===========");

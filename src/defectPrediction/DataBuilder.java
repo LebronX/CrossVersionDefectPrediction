@@ -90,6 +90,58 @@ public class DataBuilder {
 		return res;
 	}
 	
+	public static Instances filterConflictInstance_28(Instances data, int[] indexes) {
+		Instances res = new Instances(data);
+		res.delete();
+		Map<String, List<Instance>> dataMap = new HashMap<>();
+		for (int i = 0; i < data.numInstances(); i++) {
+			Instance ins = data.instance(i);
+			Attribute filename = data.attribute(0);
+			String fileStr = filename.value(indexes[i]);
+			if (!dataMap.containsKey(fileStr)) {
+				List<Instance> value = new ArrayList<>();
+				value.add(ins);			
+				dataMap.put(fileStr, value);
+			}else {
+				dataMap.get(fileStr).add(ins);
+			}
+		}
+		for (List<Instance> value : dataMap.values()) {
+			if (value.size() == 1) {
+				res.add(value.get(0));
+			}else {
+				res.add(selectInstance_28(value));
+			}
+		}
+		return res;
+	}
+	
+	public static Instances filterConflictInstance_37(Instances data, int[] indexes) {
+		Instances res = new Instances(data);
+		res.delete();
+		Map<String, List<Instance>> dataMap = new HashMap<>();
+		for (int i = 0; i < data.numInstances(); i++) {
+			Instance ins = data.instance(i);
+			Attribute filename = data.attribute(0);
+			String fileStr = filename.value(indexes[i]);
+			if (!dataMap.containsKey(fileStr)) {
+				List<Instance> value = new ArrayList<>();
+				value.add(ins);			
+				dataMap.put(fileStr, value);
+			}else {
+				dataMap.get(fileStr).add(ins);
+			}
+		}
+		for (List<Instance> value : dataMap.values()) {
+			if (value.size() == 1) {
+				res.add(value.get(0));
+			}else {
+				res.add(selectInstance_37(value));
+			}
+		}
+		return res;
+	}
+	
 	public static Instance selectInstance(List<Instance> instances) {
 		int buggyCount = 0;
 		Instance buggyIns = null;
@@ -108,6 +160,52 @@ public class DataBuilder {
 		Instance res = buggyCount >= cleanCount ? buggyIns : cleanIns;
 		return res;
 	}
+	
+	public static Instance selectInstance_28(List<Instance> instances) {
+		int buggyCount = 0;
+		Instance buggyIns = null;
+		Instance cleanIns = null;
+		for (Instance ins : instances) {
+			Attribute cls = ins.classAttribute();
+			String classStr = ins.stringValue(cls);
+			if ("1".equals(classStr)) {
+				buggyCount += 1;
+				buggyIns = buggyIns == null ? ins : buggyIns;
+			}else {
+				cleanIns = cleanIns == null ? ins : cleanIns;
+			}
+		}
+		
+		//try 28rule
+		float buggyRate= (float)buggyCount / (float)instances.size();		
+		Instance res = buggyRate > 0.2 ? buggyIns : cleanIns;
+
+		return res;
+	}
+	
+	public static Instance selectInstance_37(List<Instance> instances) {
+		int buggyCount = 0;
+		Instance buggyIns = null;
+		Instance cleanIns = null;
+		for (Instance ins : instances) {
+			Attribute cls = ins.classAttribute();
+			String classStr = ins.stringValue(cls);
+			if ("1".equals(classStr)) {
+				buggyCount += 1;
+				buggyIns = buggyIns == null ? ins : buggyIns;
+			}else {
+				cleanIns = cleanIns == null ? ins : cleanIns;
+			}
+		}
+		
+		//try 37rule
+		float buggyRate= (float)buggyCount / (float)instances.size();		
+		Instance res = buggyRate > 0.3 ? buggyIns : cleanIns;
+
+		return res;
+	}
+	
+	
 	
 	public static void main(String[] args) {
 		String pre = "E:/data/metric_arff1/jmeter/jmeter_metrics_";
