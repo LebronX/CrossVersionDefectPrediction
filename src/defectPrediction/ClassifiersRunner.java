@@ -121,7 +121,7 @@ public class ClassifiersRunner {
 			Instances testData = allVersData[index+1];
 			testData = FeatureSelection.filterData(testData, features);
 			Evaluation eval = classifier.evalutate(testData);
-			evals[evals.length-4][index] = eval;
+			evals[evals.length-6][index] = eval;
 			
 			//filtered data as train dataset
 			indexes = DataBuilder.mergeData(allVerDataWithName[0], allVerDataWithName[index], indexes);
@@ -149,7 +149,7 @@ public class ClassifiersRunner {
 			testData = allVersData[index+1];
 			testData = FeatureSelection.filterData(testData, features2);
 			Evaluation eval2 = classifier2.evalutate(testData);
-			evals[evals.length-3][index] = eval2;
+			evals[evals.length-5][index] = eval2;
 			
 			filtered_28 = new Instances(filtered_28);
 			filtered_28 = FeatureSelection.delFilename(filtered_28);
@@ -159,7 +159,7 @@ public class ClassifiersRunner {
 			testData = allVersData[index+1];
 			testData = FeatureSelection.filterData(testData, features3);
 			Evaluation eval3 = classifier3.evalutate(testData);
-			evals[evals.length-2][index] = eval3;
+			evals[evals.length-4][index] = eval3;
 			
 			filtered_37 = new Instances(filtered_37);
 			filtered_37 = FeatureSelection.delFilename(filtered_37);
@@ -169,7 +169,7 @@ public class ClassifiersRunner {
 			testData = allVersData[index+1];
 			testData = FeatureSelection.filterData(testData, features4);
 			Evaluation eval4 = classifier4.evalutate(testData);
-			evals[evals.length-1][index] = eval4;
+			evals[evals.length-3][index] = eval4;
 					
 			filtered_46 = new Instances(filtered_46);
 			filtered_46 = FeatureSelection.delFilename(filtered_46);
@@ -179,7 +179,7 @@ public class ClassifiersRunner {
 			testData = allVersData[index+1];
 			testData = FeatureSelection.filterData(testData, features5);
 			Evaluation eval5 = classifier5.evalutate(testData);
-			evals[evals.length-1][index] = eval5;
+			evals[evals.length-2][index] = eval5;
 			
 			filtered_19 = new Instances(filtered_19);
 			filtered_19 = FeatureSelection.delFilename(filtered_19);
