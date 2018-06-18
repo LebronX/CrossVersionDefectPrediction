@@ -142,6 +142,59 @@ public class DataBuilder {
 		return res;
 	}
 	
+	public static Instances filterConflictInstance_46(Instances data, int[] indexes) {
+		Instances res = new Instances(data);
+		res.delete();
+		Map<String, List<Instance>> dataMap = new HashMap<>();
+		for (int i = 0; i < data.numInstances(); i++) {
+			Instance ins = data.instance(i);
+			Attribute filename = data.attribute(0);
+			String fileStr = filename.value(indexes[i]);
+			if (!dataMap.containsKey(fileStr)) {
+				List<Instance> value = new ArrayList<>();
+				value.add(ins);			
+				dataMap.put(fileStr, value);
+			}else {
+				dataMap.get(fileStr).add(ins);
+			}
+		}
+		for (List<Instance> value : dataMap.values()) {
+			if (value.size() == 1) {
+				res.add(value.get(0));
+			}else {
+				res.add(selectInstance_46(value));
+			}
+		}
+		return res;
+	}
+	
+	public static Instances filterConflictInstance_19(Instances data, int[] indexes) {
+		Instances res = new Instances(data);
+		res.delete();
+		Map<String, List<Instance>> dataMap = new HashMap<>();
+		for (int i = 0; i < data.numInstances(); i++) {
+			Instance ins = data.instance(i);
+			Attribute filename = data.attribute(0);
+			String fileStr = filename.value(indexes[i]);
+			if (!dataMap.containsKey(fileStr)) {
+				List<Instance> value = new ArrayList<>();
+				value.add(ins);			
+				dataMap.put(fileStr, value);
+			}else {
+				dataMap.get(fileStr).add(ins);
+			}
+		}
+		for (List<Instance> value : dataMap.values()) {
+			if (value.size() == 1) {
+				res.add(value.get(0));
+			}else {
+				res.add(selectInstance_19(value));
+			}
+		}
+		return res;
+	}
+	
+	
 	public static Instance selectInstance(List<Instance> instances) {
 		int buggyCount = 0;
 		Instance buggyIns = null;
@@ -205,6 +258,49 @@ public class DataBuilder {
 		return res;
 	}
 	
+	public static Instance selectInstance_46(List<Instance> instances) {
+		int buggyCount = 0;
+		Instance buggyIns = null;
+		Instance cleanIns = null;
+		for (Instance ins : instances) {
+			Attribute cls = ins.classAttribute();
+			String classStr = ins.stringValue(cls);
+			if ("1".equals(classStr)) {
+				buggyCount += 1;
+				buggyIns = buggyIns == null ? ins : buggyIns;
+			}else {
+				cleanIns = cleanIns == null ? ins : cleanIns;
+			}
+		}
+		
+		//try 46rule
+		float buggyRate= (float)buggyCount / (float)instances.size();		
+		Instance res = buggyRate > 0.4 ? buggyIns : cleanIns;
+
+		return res;
+	}
+	
+	public static Instance selectInstance_19(List<Instance> instances) {
+		int buggyCount = 0;
+		Instance buggyIns = null;
+		Instance cleanIns = null;
+		for (Instance ins : instances) {
+			Attribute cls = ins.classAttribute();
+			String classStr = ins.stringValue(cls);
+			if ("1".equals(classStr)) {
+				buggyCount += 1;
+				buggyIns = buggyIns == null ? ins : buggyIns;
+			}else {
+				cleanIns = cleanIns == null ? ins : cleanIns;
+			}
+		}
+		
+		//try 19rule
+		float buggyRate= (float)buggyCount / (float)instances.size();		
+		Instance res = buggyRate > 0.1 ? buggyIns : cleanIns;
+
+		return res;
+	}
 	
 	
 	public static void main(String[] args) {

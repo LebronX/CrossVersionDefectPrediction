@@ -72,7 +72,7 @@ public class ClassifiersRunner {
 		List<String> files = getVerFileList(name);
 		Util.sortFileName(files);	
 		int verNum = files.size();		
-		Evaluation[][] evals = new Evaluation[verNum+3][verNum-1];
+		Evaluation[][] evals = new Evaluation[verNum+5][verNum-1];
 		Instances[] allVersData = new Instances[files.size()];
 		Instances[] allVerDataWithName = new Instances[files.size()];
 		for (int sourIndex = 0; sourIndex < verNum - 1; sourIndex++) {
@@ -135,6 +135,12 @@ public class ClassifiersRunner {
 			//used for 37rule
 			Instances filtered_37 = DataBuilder.filterConflictInstance_37(allVerDataWithName[0], indexes);
 			
+			//used for 46rule
+			Instances filtered_46 = DataBuilder.filterConflictInstance_46(allVerDataWithName[0], indexes);
+			
+			//used for 19rule
+			Instances filtered_19 = DataBuilder.filterConflictInstance_19(allVerDataWithName[0], indexes);
+			
 			filtered = new Instances(filtered);
 			filtered = FeatureSelection.delFilename(filtered);
 			int[] features2 = FeatureSelection.featureSelection(filtered, featureSelection);
@@ -164,7 +170,26 @@ public class ClassifiersRunner {
 			testData = FeatureSelection.filterData(testData, features4);
 			Evaluation eval4 = classifier4.evalutate(testData);
 			evals[evals.length-1][index] = eval4;
+					
+			filtered_46 = new Instances(filtered_46);
+			filtered_46 = FeatureSelection.delFilename(filtered_46);
+			int[] features5 = FeatureSelection.featureSelection(filtered_46, featureSelection);
+			Instances trainData5 = FeatureSelection.filterData(filtered_46, features5);
+			GeneralClassifier classifier5 = new GeneralClassifier(trainData5, model, null);
+			testData = allVersData[index+1];
+			testData = FeatureSelection.filterData(testData, features5);
+			Evaluation eval5 = classifier5.evalutate(testData);
+			evals[evals.length-1][index] = eval5;
 			
+			filtered_19 = new Instances(filtered_19);
+			filtered_19 = FeatureSelection.delFilename(filtered_19);
+			int[] features6 = FeatureSelection.featureSelection(filtered_19, featureSelection);
+			Instances trainData6 = FeatureSelection.filterData(filtered_19, features6);
+			GeneralClassifier classifier6 = new GeneralClassifier(trainData6, model, null);
+			testData = allVersData[index+1];
+			testData = FeatureSelection.filterData(testData, features6);
+			Evaluation eval6 = classifier6.evalutate(testData);
+			evals[evals.length-1][index] = eval6;
 		}
 		formatResult(evals, name, model, featureSelection, rebalance, files);
 	}
@@ -192,22 +217,28 @@ public class ClassifiersRunner {
 		tags.add("filtered_majority");
 		tags.add("filtered_28");
 		tags.add("filtered_37");
+		tags.add("filtered_46");
+		tags.add("filtered_19");
 		for (int sourIndex = 0; sourIndex < rowNum; sourIndex++) {
 			for (int targIndex = 0; targIndex < colNum; targIndex++) {
-				if (sourIndex <= targIndex || (sourIndex >= rowNum-4 && targIndex >= 1)) {
+				if (sourIndex <= targIndex || (sourIndex >= rowNum-6 && targIndex >= 1)) {
 					Evaluation eval = evals[sourIndex][targIndex];
 					if (eval == null) {
 						continue;
 					}
 					String resultTitle = null;
-					if (sourIndex == rowNum-4) {
+					if (sourIndex == rowNum-6) {
 						resultTitle = "=== " + name + "  allData  -->" + tags.get(targIndex) + " ===";
-					} else if (sourIndex == rowNum-3) {
+					} else if (sourIndex == rowNum-5) {
 						resultTitle = "=== " + name + "  filteredData  -->" + tags.get(targIndex) + " ===";
-					} else if (sourIndex == rowNum-2) {
+					} else if (sourIndex == rowNum-4) {
 						resultTitle = "=== " + name + "  filteredData_28  -->" + tags.get(targIndex) + " ===";
-					} else if (sourIndex == rowNum-1) {
+					} else if (sourIndex == rowNum-3) {
 						resultTitle = "=== " + name + "  filteredData_37  -->" + tags.get(targIndex) + " ===";
+					} else if (sourIndex == rowNum-2) {
+						resultTitle = "=== " + name + "  filteredData_46  -->" + tags.get(targIndex) + " ===";
+					} else if (sourIndex == rowNum-1) {
+						resultTitle = "=== " + name + "  filteredData_19  -->" + tags.get(targIndex) + " ===";
 					} else {
 						resultTitle = "=== " + name + "  " + tags.get(sourIndex) + "-->" + tags.get(targIndex) + " ===";
 					} 
@@ -336,9 +367,9 @@ public class ClassifiersRunner {
 		};
 		String[] attrSele = {
 			null,
-//			FeatureSelection.CFS_ATTRIBUTE_SELECTION,
+			FeatureSelection.CFS_ATTRIBUTE_SELECTION,
 //			FeatureSelection.CLASSIFIER_ATTRIBUTE_SELECTION,
-//			FeatureSelection.FILTER_ATTRIBUTE_SELECTION
+			FeatureSelection.FILTER_ATTRIBUTE_SELECTION
 		};
 		for (String name : softwares) {
 			System.out.println("===========processing " + name + "===========");
